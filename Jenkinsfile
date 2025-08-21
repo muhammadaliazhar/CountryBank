@@ -4,26 +4,29 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                git 'https://github.com/jaiswaladi246/CountryBank.git'
+                git 'https://github.com/muhammadaliazhar/CountryBank.git'
             }
         }
-        
+
         stage('OWASP Dependency Check') {
             steps {
-                 dependencyCheck additionalArguments: ' --scan ./ ', odcInstallation: 'DC'
+                withCredentials([string(credentialsId: 'NVD_API_KEY', variable: 'NVD_KEY')]) {
+                    dependencyCheck additionalArguments: "--scan ./ --nvdApiKey=${NVD_KEY} --data /var/lib/jenkins/odc-data", odcInstallation: 'DC'
                     dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                }
             }
         }
-        
-        stage('Trivy') {
+
+        stage('Trivy Scan') {
             steps {
-                 sh "trivy fs ."
+                sh "trivy fs ."
             }
         }
-        
-         stage('Build & deploy') {
+
+        stage('Build & Deploy') {
             steps {
-                 sh "docker-compose up -d"
+                sh "whoami"
+                sh "docker compose up -d"
             }
         }
     }
